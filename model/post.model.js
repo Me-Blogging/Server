@@ -24,6 +24,10 @@ const PostSchema = mongoose.Schema({
     type: String,
     enum: ['draft', 'published', 'deleted'],
     default: 'draft'
+  },
+  date: {
+    type: Date,
+    required: true
   }
 }, {timestamp: true})
 
