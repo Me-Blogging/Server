@@ -8,9 +8,25 @@ const PostSchema = mongoose.Schema({
   content: {
     type: String,
     required: true 
+  },
+  picture: {
+    type: String
+  },
+  category: {
+    type: String,
+    enum: ['Spiritual', 'Tech'],
+    required: true
+  },
+  tags: [{
+    type: String
+  }],
+  status: {
+    type: String,
+    enum: ['draft', 'published', 'deleted'],
+    default: 'draft'
   }
 }, {timestamp: true})
 
-const Post = mongoose.Model("Post", PostSchema)
+const Post = mongoose.model("Post", PostSchema)
 
 module.exports = Post 
