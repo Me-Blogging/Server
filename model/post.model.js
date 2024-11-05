@@ -26,8 +26,7 @@ const PostSchema = mongoose.Schema({
     default: 'draft'
   },
   date: {
-    type: Date,
-    required: true
+    type: Date
   }
 }, {timestamp: true})
 

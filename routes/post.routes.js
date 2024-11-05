@@ -15,6 +15,7 @@ const {
 
 router.post('/createpost', Upload, CreatePost)
 router.get('/getposts', GetPosts)
+router.patch('/updatepost/:id', UpdatePost)
 
 
 module.exports = router
