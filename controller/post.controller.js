@@ -46,10 +46,20 @@ exports.GetPosts = async (req, res) => {
     res.status(200).send(formattedPosts)
   } catch (error) {
     console.error('Error fetching posts:', error);
-    res.status(500).send({ error: 'Failed to retrieve posts' }); 3
+    res.status(500).send({ error: 'Failed to retrieve posts' }); 
   }
 }
 
+exports.GetPost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+    if(!post) return res.status(404).send('Post not found')
+    res.status(200).send(post)
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).send({ error: 'Failed to retrieve the post' }); 
+  }
+}
 exports.UpdatePost = async (req, res) => {
   try {
     const { title, content, picture, category, tags, status } = req.body
