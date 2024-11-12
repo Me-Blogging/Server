@@ -12,10 +12,12 @@ const {
   DraftPost,
   SchedulePost,
   DeletePost,
+  GetPublishedPosts,
 } = require('../controller/post.controller')
 
 router.post('/createpost', Upload, CreatePost)
 router.get('/getposts', GetPosts)
+router.get('/getpublishedposts', GetPublishedPosts)
 router.get('/getpost/:id', GetPost)
 router.patch('/updatepost/:id', UpdatePost)
 

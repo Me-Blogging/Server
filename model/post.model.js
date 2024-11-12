@@ -14,7 +14,6 @@ const PostSchema = mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Spiritual', 'Tech'],
     required: true
   },
   tags: [{

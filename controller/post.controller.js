@@ -46,20 +46,60 @@ exports.GetPosts = async (req, res) => {
     res.status(200).send(formattedPosts)
   } catch (error) {
     console.error('Error fetching posts:', error);
-    res.status(500).send({ error: 'Failed to retrieve posts' }); 
+    res.status(500).send({ error: 'Failed to retrieve posts' });
+  }
+}
+
+exports.GetPublishedPosts = async (req, res) => {
+  try {
+    const publishedPosts = await Post.find({ status: "published" })
+    if (!publishedPosts) return res.status(404).send("No published post")
+
+    const formattedPublishedPosts = await Promise.all(
+      publishedPosts.map(async post => {
+        const filePath = post.picture ? post.picture.replace(/\\/g, "/") : null;
+        const fileData = filePath ? await fs.promises.readFile(filePath) : null;
+        return {
+          ...post.toObject(),
+          file: fileData ? `data:${path.extname(filePath).slice(1)};base64,${fileData.toString('base64')}` : null,
+          date: formatDate(post.date)
+        };
+      })
+    )
+    res.status(200).send(formattedPublishedPosts)
+  } catch (error) {
+    console.error('Error fetching published posts:', error);
+    res.status(500).send({ error: 'Failed to retrieve posts' });
   }
 }
 
 exports.GetPost = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id)
-    if(!post) return res.status(404).send('Post not found')
-    res.status(200).send(post)
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).send('Post not found');
+
+    const formattedPost = {
+      ...post.toObject(),
+      date: formatDate(post.date), 
+    };
+
+    if (post.picture) {
+      const filePath = post.picture.replace(/\\/g, "/");
+      try {
+        const fileData = await fs.promises.readFile(filePath);
+        formattedPost.file = `data:${path.extname(filePath).slice(1)};base64,${fileData.toString('base64')}`;
+      } catch (error) {
+        console.error('Error reading post image:', error);
+        res.status(500).send({error: 'Failed to retrieve the post'})
+      }
+    }
+
+    res.status(200).send(formattedPost);
   } catch (error) {
     console.error('Error fetching post:', error);
-    res.status(500).send({ error: 'Failed to retrieve the post' }); 
+    res.status(500).send({ error: 'Failed to retrieve the post' });
   }
-}
+};
 exports.UpdatePost = async (req, res) => {
   try {
     const { title, content, picture, category, tags, status } = req.body
