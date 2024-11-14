@@ -1,6 +1,9 @@
 const Post = require('../model/post.model')
 const fs = require('fs')
 const path = require('path')
+const sanitizeHtml = require('sanitize-html');
+const markdownIt = require('markdown-it')();
+const { marked } = require('marked');
 
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', {
@@ -13,21 +16,24 @@ const formatDate = (date) => {
 exports.CreatePost = async (req, res) => {
   try {
     const { title, content, picture, category, tags, status } = req.body
+    const sanitizedContent = sanitizeHtml(content) // Sanitize the markdown content
     const newPost = new Post({
       title,
-      content,
+      content: sanitizedContent,
       picture: req.file ? req.file.path : null,
       category,
       tags,
       status: status || 'draft',
       date: Date.now()
     })
-    res.json({ saved: newPost })
     await newPost.save()
+    res.json({ saved: newPost })
   } catch (error) {
-    throw error
+    console.error('Error creating post:', error)
+    res.status(500).send({ error: 'Failed to create post' })
   }
 }
+
 
 exports.GetPosts = async (req, res) => {
   try {
@@ -62,7 +68,8 @@ exports.GetPublishedPosts = async (req, res) => {
         return {
           ...post.toObject(),
           file: fileData ? `data:${path.extname(filePath).slice(1)};base64,${fileData.toString('base64')}` : null,
-          date: formatDate(post.date)
+          date: formatDate(post.date),
+          htmlContent: marked(post.content)
         };
       })
     )
@@ -80,7 +87,8 @@ exports.GetPost = async (req, res) => {
 
     const formattedPost = {
       ...post.toObject(),
-      date: formatDate(post.date), 
+      date: formatDate(post.date),
+      htmlContent: marked(post.content) // markdown to HTML
     };
 
     if (post.picture) {
@@ -90,7 +98,6 @@ exports.GetPost = async (req, res) => {
         formattedPost.file = `data:${path.extname(filePath).slice(1)};base64,${fileData.toString('base64')}`;
       } catch (error) {
         console.error('Error reading post image:', error);
-        res.status(500).send({error: 'Failed to retrieve the post'})
       }
     }
 
@@ -103,12 +110,13 @@ exports.GetPost = async (req, res) => {
 exports.UpdatePost = async (req, res) => {
   try {
     const { title, content, picture, category, tags, status } = req.body
+    const sanitizedContent = sanitizeHtml(content) // Sanitize the markdown 
 
     const updatedPost = await Post.findByIdAndUpdate(
       req.params.id,
       {
         title,
-        content,
+        content: sanitizedContent,
         picture: req.file ? req.file.path : null,
         category,
         tags,
@@ -120,7 +128,8 @@ exports.UpdatePost = async (req, res) => {
 
     res.status(201).send(updatedPost)
   } catch (error) {
-    throw error
+    console.error('Error updating post:', error)
+    res.status(500).send({ error: 'Failed to update the post' })
   }
 }
 
